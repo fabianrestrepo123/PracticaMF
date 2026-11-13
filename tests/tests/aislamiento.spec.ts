@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+const authFile = '.auth/user.json';
+
+
 test('A: inicia sesión', async ({ page }) => {
   await page.goto('https://www.saucedemo.com');
   await page.getByPlaceholder('Username').fill('standard_user');
@@ -8,6 +11,12 @@ test('A: inicia sesión', async ({ page }) => {
   await expect(page).toHaveURL(/inventory/);
 });
 
+test('C: inicia sesión', async ({ page }) => {
+  await page.goto('/inventory');
+  await expect(page).toHaveURL(/inventory/);
+});
+
+
 test('B: ¿sigo logueado?', async ({ page }) => {
   await page.goto('https://www.saucedemo.com/inventory.html');
   await expect(page).toHaveURL(/inventory/);
@@ -15,8 +24,10 @@ test('B: ¿sigo logueado?', async ({ page }) => {
 
 
 
+
+
 test('strict mode', async ({ page }) => {
-  await page.goto('https://www.saucedemo.com');
+  await page.goto('/');
   await page.getByPlaceholder('Username').fill('standard_user');
   await page.getByPlaceholder('Password').fill('secret_sauce');
   await page.getByRole('button', { name: 'Login' }).click();
@@ -48,3 +59,31 @@ test('agregar dos productos', async ({ page }) => {
   expect(badge).toBe('2');
   expect(await page.locator('.inventory_item').count()).toBe(6);
 });
+
+// tests/login.spec.ts
+
+
+test.describe('sin sesión', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+  
+
+  test('usuario bloqueado ve el error', async ({ page }) => {
+    await page.goto('/');
+    await page.getByPlaceholder('Username').fill('locked_out_user');
+    await page.getByPlaceholder('Password').fill('secret_sauce');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await expect(page.getByTestId('error')).toContainText('locked out');
+  });
+
+  test('usuario con contraseña incorrecta', async ({ page }) => {
+    await page.goto('/');
+    await page.getByPlaceholder('Username').fill('locked_out_user');
+    await page.getByPlaceholder('Password').fill('secret_sauce22');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await expect(page.getByTestId('error')).toContainText('locked out');
+  });
+
+});
+
+//test('login válido', { tag: '@smoke' }, async ({ page }) => { ... });
+//test('compra completa @regresion', async ({ page }) => { ... });
